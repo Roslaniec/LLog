@@ -15,9 +15,13 @@
 #include <boost/noncopyable.hpp>
 
 #ifdef LINKO_LOG_MT
+# if LINKO_LOG_BOOST_THREAD
+#  include <boost/thread/thread.hpp>
+# else
+#  include <thread>
+# endif
 #include "mutex.hpp"
 #include "condition.hpp"
-#include <boost/thread/thread.hpp>
 #include <queue>
 #include <stack>
 #endif 
@@ -83,7 +87,11 @@ private:
     void run();
     void stop(); // Stop logging thread
     inline bool thr_write(const void* s, size_t n);
+#   if LINKO_LOG_BOOST_THREAD
     boost::thread *_thread;
+#   else
+    std::thread *_thread;
+#   endif
     linko::condition _cond;
     struct Buffer;
     std::queue<Buffer> _queue; // free

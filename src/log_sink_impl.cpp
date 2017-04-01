@@ -97,7 +97,11 @@ void
 LogSinkImpl::start()
 {
     if (_thread) return;
+#   if LINKO_LOG_BOOST_THREAD
     _thread = new boost::thread(&LogSinkImpl::run, this);
+#   else
+    _thread = new std::thread(&LogSinkImpl::run, this);
+#   endif
 }
 
 void

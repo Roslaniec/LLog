@@ -27,4 +27,10 @@
  */
 #define LINKO_LOG_THREAD
 
+
+/*
+ * Switch between using boost::thread and std::thread.
+ */
+#define LINKO_LOG_BOOST_THREAD __cplusplus < 201103L
+
 #endif
