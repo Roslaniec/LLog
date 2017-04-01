@@ -23,8 +23,15 @@ SOFTWARE.
 #include <llog/log.hpp>
 #include <llog/log_sink_impl.hpp>
 #include <llog/timer.hpp>
-#include <boost/thread/thread.hpp>
 #include <iostream>
+
+#if LINKO_LOG_BOOST_THREAD
+# include <boost/thread/thread.hpp>
+using boost::thread;
+#else
+# include <thread>
+using std::thread;
+#endif
 
 
 using namespace linko;
@@ -79,12 +86,12 @@ mt_test_proc()
 void
 test_multi_thread()
 {
-    boost::thread thr1(mt_test_proc);
+    thread thr1(mt_test_proc);
 #   if 1
-    boost::thread thr2(mt_test_proc);
-    boost::thread thr3(mt_test_proc);
-    boost::thread thr4(mt_test_proc);
-    boost::thread thr5(mt_test_proc);
+    thread thr2(mt_test_proc);
+    thread thr3(mt_test_proc);
+    thread thr4(mt_test_proc);
+    thread thr5(mt_test_proc);
     
     sleep(4);
     std::time_t time = std::time(0);

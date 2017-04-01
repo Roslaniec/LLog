@@ -21,7 +21,7 @@
 # ****************************************************************************
 set( Boost_USE_STATIC_LIBS OFF )
 find_package( Boost 1.44 COMPONENTS
-  unit_test_framework filesystem system thread REQUIRED)
+  unit_test_framework filesystem system ${Boost_THREAD} REQUIRED)
 
 add_test(Test logtest)
 

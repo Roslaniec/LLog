@@ -75,6 +75,7 @@ private:
     std::string _dir;
     std::string _prog;
     std::time_t _time;
+    struct tm _tm;
     int _fd;
     boost::atomic<unsigned> _refs;
 

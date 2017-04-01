@@ -63,6 +63,7 @@ LogSinkImpl::LogSinkImpl(const std::string &dir, const std::string &prog)
     , _dir(dir)
     , _prog(prog)
     , _time()
+    , _tm()
     , _fd(-1)
     , _refs(0)
 #   ifdef LINKO_LOG_MT
@@ -203,13 +204,20 @@ void
 LogSinkImpl::rotate(std::time_t time)
 {
     if (_prog.empty()) return;
-    std::time_t day = time - time % (60*60*24);
-    if (day == _time) return;
+    const std::time_t minutes = time - time % (60*15); // 15min TZ resolution
+    if (minutes == _time) return;
 
     MUTEX_GUARD(_mutex);
-    if (day == _time) return;
+    if (minutes == _time) return;
     const bool print_msg = _time;
-    _time = day;
+    _time = minutes;
+
+    struct tm timeinfo;
+    localtime_r(&time, &timeinfo);
+    if (timeinfo.tm_year == _tm.tm_year
+        && timeinfo.tm_mon == _tm.tm_mon
+        && timeinfo.tm_mday == _tm.tm_mday) return;
+    _tm = timeinfo;
 
 #   ifdef LINKO_LOG_THREAD
     if (_thread) {
@@ -226,9 +234,7 @@ void
 LogSinkImpl::mx_rotate(bool print_msg)
 {
     char buffer[80];
-    struct tm timeinfo;
-    localtime_r(&_time, &timeinfo);
-    strftime(buffer, sizeof(buffer), "%Y%m%d-", &timeinfo);
+    strftime(buffer, sizeof(buffer), "%Y%m%d-", &_tm);
   
     std::string logname = _dir + "/" + buffer + _prog + ".log";
     if (print_msg) mx_print('A', "Log file will be rotated!\n");

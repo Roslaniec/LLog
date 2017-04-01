@@ -63,7 +63,7 @@ LogTimestamp::update(char lvl)
     if (_time == tv.tv_sec) 
 	return;
     
-    if (!_time || tv.tv_sec/3600 != _time/3600) {
+    if (!_time || tv.tv_sec/900 != _time/900) { // assume 15min TZ resolution
         using namespace std;
         struct tm result;
         const time_t t = tv.tv_sec; // Windows hack
