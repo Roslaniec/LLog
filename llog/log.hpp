@@ -46,9 +46,9 @@ public:
 
     Log &P() { return level(LogPrint); }
 
-    bool silent() { return _streambuf.silent(); }
+    bool silent() const { return _streambuf.silent(); }
 
-    bool silent(LogLevel level) { return _streambuf.silent(level); }
+    bool silent(LogLevel level) const { return _streambuf.silent(level); }
 
     LogSink sink() const { return _sink; }
 
@@ -86,15 +86,18 @@ inline Log &logD() { return Log::it()->level(LogDebug); }
 
 inline Log &logP() { return Log::it()->level(LogPrint); }
 
-inline bool lvl(LogLevel l) { return !Log::it()->silent(l); }
+inline bool lvl(LogLevel l) {
+    const Log *const log = Log::it();
+    return log && !log->silent(l);
+}
 
-inline bool lvlW() { return !Log::it()->silent(LogWarning); }
+inline bool lvlW() { return lvl(LogWarning); }
 
-inline bool lvlI() { return !Log::it()->silent(LogInfo); }
+inline bool lvlI() { return lvl(LogInfo); }
 
-inline bool lvlD() { return !Log::it()->silent(LogDebug); }
+inline bool lvlD() { return lvl(LogDebug); }
 
-inline bool lvlP() { return !Log::it()->silent(LogPrint); }
+inline bool lvlP() { return lvl(LogPrint); }
 
 
 // class LogFlush
