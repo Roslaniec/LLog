@@ -25,6 +25,10 @@ struct Timer {
     // Better don't cast. Use usec directly.
     // operator unsigned long() const { return usec; }
 
+#   if 201103L <= __cplusplus    
+    Timer &operator=(const Timer &time) = default;
+#   endif
+
     Timer &operator++() 
         { ++usec; return *this; }
 

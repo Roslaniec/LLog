@@ -65,7 +65,7 @@ void
 condition::notify_one() throw()
 {
     int const res = pthread_cond_signal(&c);
-    assert(!res);
+    assert(!res); (void)res;
 }
 
 
@@ -73,7 +73,7 @@ void
 condition::notify_all() throw()
 {
     int const res = pthread_cond_broadcast(&c);
-    assert(!res);
+    assert(!res); (void)res;
 }
 
 
