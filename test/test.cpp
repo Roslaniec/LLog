@@ -21,21 +21,14 @@ SOFTWARE.
 ******************************************************************************/
 #include <llog/thread_id.hpp>
 #include <llog/log.hpp>
+#include <llog/log_instance.hpp>
 #include <llog/log_sink_impl.hpp>
 #include <llog/timer.hpp>
 #include <iostream>
-
-#if LINKO_LOG_BOOST_THREAD
-# include <boost/thread/thread.hpp>
-using boost::thread;
-#else
 # include <thread>
+
 using std::thread;
-#endif
-
-
 using namespace linko;
-namespace b = boost;
 
 LogSink logSink;
 
@@ -43,7 +36,6 @@ LogSink logSink;
 void test_log(Log &log, int count)
 {
 #   ifdef LINKO_LOG_MT
-    // b::thread::id id = b::this_thread::get_id();
     const int id = thread_id();
 #   else
     const int id = 0;
@@ -76,24 +68,25 @@ void test_log(linko::old::LogOld &log, int count)
 
 #ifdef LINKO_LOG_MT
 void
-mt_test_proc() 
+mt_test_proc(int count) 
 {
-    Log::createIt(logSink); 
-    test_log(*Log::it(), 1000000);
-    Log::destroyIt();
+    LogInstance instance(logSink);
+    // Log::createIt(logSink);
+    test_log(*Log::it(), count);
+    // Log::destroyIt();
 }
 
 void
-test_multi_thread()
+test_multi_thread(int count)
 {
-    thread thr1(mt_test_proc);
+    thread thr1(mt_test_proc, count);
 #   if 1
-    thread thr2(mt_test_proc);
-    thread thr3(mt_test_proc);
-    thread thr4(mt_test_proc);
-    thread thr5(mt_test_proc);
+    thread thr2(mt_test_proc, count);
+    thread thr3(mt_test_proc, count);
+    thread thr4(mt_test_proc, count);
+    thread thr5(mt_test_proc, count);
     
-    sleep(4);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     std::time_t time = std::time(0);
     time += 3600*24;
     logSink->rotate(time);
@@ -156,7 +149,7 @@ int main() {
     Timer start;
 
 #   ifdef LINKO_LOG_MT
-    test_multi_thread();
+    test_multi_thread(10000);
 #   else
     test_single_thread(10000);
     test_single_thread_old(10000);

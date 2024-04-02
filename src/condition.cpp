@@ -21,8 +21,7 @@
 ******************************************************************************/
 #include <llog/condition.hpp>
 #include <llog/mutex.hpp>
-#include <boost/thread/exceptions.hpp>
-#include <boost/throw_exception.hpp>
+#include <llog/system_error.hpp>
 #include <cassert>
 
 namespace linko {
@@ -30,24 +29,21 @@ namespace linko {
 condition::condition()
 {
     int const res = pthread_cond_init(&c, NULL);
-    if (res) boost::throw_exception(
-        boost::thread_resource_error(res, "pthread_cond_init failed"));
+    if (res) throw_system_error(res, "pthread_cond_init failed");
 }
 
 
 condition::~condition()
 {
     int const res = pthread_cond_destroy(&c);
-    if (res) boost::throw_exception(
-        boost::thread_resource_error(res, "pthread_cond_destroy failed"));
+    if (res) throw_system_error(res, "pthread_cond_destroy failed");
 }
 
 
 void
 condition::throw_condition_error()
 {
-    boost::throw_exception(
-        boost::condition_error(-1, "linko::condition error"));
+    throw_system_error(EINVAL, "linko::condition error");
 }
 
 
@@ -56,8 +52,7 @@ condition::wait(mutex &m)
 {
     pthread_mutex_t* the_mutex = m.native_handle();
     int const res = pthread_cond_wait(&c, the_mutex);
-    if (res) boost::throw_exception(
-        boost::thread_resource_error(res, "pthread_cond_wait failed"));
+    if (res) throw_system_error(res, "pthread_cond_wait failed");
 }
 
 

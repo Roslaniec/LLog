@@ -20,24 +20,21 @@
  SOFTWARE.
 ******************************************************************************/
 #include <llog/mutex.hpp>
-#include <boost/thread/exceptions.hpp>
-#include <boost/throw_exception.hpp>
+#include <llog/system_error.hpp>
 
 namespace linko {
 
 mutex::mutex()
 {
     int const res = pthread_mutex_init(&m, NULL);
-    if(res) boost::throw_exception(
-        boost::thread_resource_error(res, "pthread_mutex_init failed"));
+    if (res) throw_system_error(res, "pthread_mutex_init failed");
 }
 
 
 mutex::~mutex()
 {
     const int res = pthread_mutex_destroy(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_mutex_destroy failed"));
+    if (res) throw_system_error(res, "pthread_mutex_destroy failed");
 }
 
 
@@ -45,8 +42,8 @@ bool
 mutex::try_lock()
 {
     const int res = pthread_mutex_trylock(&m);
-    if (res && (res != EBUSY)) boost::throw_exception(
-        boost::lock_error(res, "pthread_mutex_trylock failed"));
+    if (res && (res != EBUSY))
+        throw_system_error(res, "pthread_mutex_trylock failed");
     return !res;
 }
 
@@ -55,8 +52,7 @@ void
 mutex::lock()
 {
     const int res = pthread_mutex_lock(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_mutex_lock failed"));
+    if (res) throw_system_error(res, "pthread_mutex_lock failed");
 }
 
 
@@ -64,8 +60,7 @@ void
 mutex::unlock()
 {
     const int res = pthread_mutex_unlock(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_mutex_unlock failed"));
+    if (res) throw_system_error(res, "pthread_mutex_unlock failed");
 }
 
 

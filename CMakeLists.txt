@@ -21,7 +21,7 @@
 # ****************************************************************************
 
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
 PROJECT(llog)
 
 SET(CPACK_PACKAGE_VERSION_MAJOR 1)
@@ -38,10 +38,6 @@ endif()
 
 # C++11 compilation:
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-# set(Boost_THREAD thread)
-
-set(Boost_USE_MULTITHREADED ON)
-find_package( Boost 1.57 COMPONENTS ${Boost_THREAD} REQUIRED)
 
 enable_testing()
 add_subdirectory(llog)

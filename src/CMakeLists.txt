@@ -20,7 +20,7 @@
 # SOFTWARE.
 # ****************************************************************************
 FILE(GLOB SRC *.cpp)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${Boost_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 ADD_LIBRARY(llog STATIC ${SRC})
 
 INSTALL(TARGETS llog

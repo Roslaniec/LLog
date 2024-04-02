@@ -27,19 +27,18 @@ namespace linko {
 void
 intrusive_ptr_add_ref(LogSinkImpl *ptr)
 {
-    ptr->_refs.fetch_add(1, boost::memory_order_relaxed);
+    ptr->_refs.fetch_add(1, std::memory_order_relaxed);
 }
 
 
 void
 intrusive_ptr_release(LogSinkImpl *ptr)
 {
-    if (ptr->_refs.fetch_sub(1, boost::memory_order_release) == 1) {
-        boost::atomic_thread_fence(boost::memory_order_acquire);
+    if (ptr->_refs.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
         delete ptr;
     }
 }
-
 
 
 }

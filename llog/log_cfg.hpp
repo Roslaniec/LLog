@@ -9,8 +9,6 @@
  */
 #define LINKO_LOG_MT 
 
-#define LINKO_THREAD_LOCAL __thread
-
 /*
  * There is big benefit of disabling WRITE_MUTEX in case of
  * log congestions, ie. if many threads try to log at the same moment.
@@ -27,10 +25,5 @@
  */
 #define LINKO_LOG_THREAD
 
-
-/*
- * Switch between using boost::thread and std::thread.
- */
-#define LINKO_LOG_BOOST_THREAD __cplusplus < 201103L
 
 #endif

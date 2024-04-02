@@ -19,19 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # ****************************************************************************
-set( Boost_USE_STATIC_LIBS OFF )
-find_package( Boost 1.44 COMPONENTS
-  unit_test_framework filesystem system ${Boost_THREAD} REQUIRED)
 
 add_test(Test logtest)
 
 add_executable(logtest test.cpp)
-target_link_libraries(logtest
-  llog
-  ${Boost_LIBRARIES}
-  ${MARIADB_LIBRARY})  
+target_link_libraries(logtest llog)  
 target_include_directories(logtest PUBLIC
-  ${MARIADB_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${Boost_INCLUDE_DIR})
+)
 
+add_executable(testptr testptr.cpp)
+target_include_directories(testptr PUBLIC
+  ${CMAKE_SOURCE_DIR}
+)

@@ -4,12 +4,12 @@
 #ifndef LINKO_LOGGER_HPP
 #define LINKO_LOGGER_HPP
 
-#include <boost/intrusive_ptr.hpp>
+#include <llog/intrusive_ptr.hpp>
 
 namespace linko {
 
 class LoggerImpl;
-typedef boost::intrusive_ptr<LoggerImpl> Logger;
+typedef intrusive_ptr<LoggerImpl> Logger;
 
 void intrusive_ptr_add_ref(LoggerImpl *ptr);
 void intrusive_ptr_release(LoggerImpl *ptr);

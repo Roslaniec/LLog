@@ -10,21 +10,13 @@
 #include "log_streambuf.hpp"
 #include <ostream>
 
-#if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-#include <boost/thread/tss.hpp>
-#endif 
-
 
 namespace linko { 
 
 class Log : public std::ostream
 {
 public:
-#   if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-    static Log *it() { return _instance.get(); }
-#   else
     static Log *it() { return _instance; }
-#   endif 
 
     static void createIt(LogSink &sink);
     
@@ -62,13 +54,7 @@ private:
     
     LogSink _sink;
     LogStreambuf _streambuf;
-    
-#   if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-    static boost::thread_specific_ptr<Log> _instance;
-    friend class boost::thread_specific_ptr<Log>;
-#   else
-    static LINKO_THREAD_LOCAL Log *_instance;
-#   endif 
+    static thread_local Log *_instance;
 };
 
 

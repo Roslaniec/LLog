@@ -8,18 +8,13 @@
 #include "loglevel.hpp"
 #include "log_sink.hpp"
 #include "spinlock.hpp"
+#include <atomic>
 #include <ctime>
 #include <iosfwd>
 #include <string>
-#include <boost/atomic.hpp>
-#include <boost/noncopyable.hpp>
 
 #ifdef LINKO_LOG_MT
-# if LINKO_LOG_BOOST_THREAD
-#  include <boost/thread/thread.hpp>
-# else
-#  include <thread>
-# endif
+#include <thread>
 #include "mutex.hpp"
 #include "condition.hpp"
 #include <queue>
@@ -30,8 +25,11 @@ namespace linko {
 
 class LogTimestamp;
 
-class LogSinkImpl : private boost::noncopyable
+class LogSinkImpl
 {
+    LogSinkImpl(const LogSinkImpl &)            = delete; // noncopyable
+    LogSinkImpl &operator=(const LogSinkImpl &) = delete; // noncopyable
+    
 public:
     static LogSink create(const std::string &dir, const std::string &prog);
     
@@ -77,7 +75,7 @@ private:
     std::time_t _time;
     struct tm _tm;
     int _fd;
-    boost::atomic<unsigned> _refs;
+    std::atomic<unsigned> _refs;
 
 #   ifdef LINKO_LOG_MT
     typedef linko::mutex mutex_t;
@@ -88,11 +86,7 @@ private:
     void run();
     void stop(); // Stop logging thread
     inline bool thr_write(const void* s, size_t n);
-#   if LINKO_LOG_BOOST_THREAD
-    boost::thread *_thread;
-#   else
     std::thread *_thread;
-#   endif
     linko::condition _cond;
     struct Buffer;
     std::queue<Buffer> _queue; // free

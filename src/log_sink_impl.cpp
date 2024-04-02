@@ -25,14 +25,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <boost/thread/locks.hpp>
+#include <mutex>
 
 namespace linko {
 
 #ifdef LINKO_LOG_MT
 # define MUTEX_LOCK(mtx) mtx.lock()
 # define MUTEX_UNLOCK(mtx) mtx.unlock()
-# define MUTEX_GUARD(mtx) boost::lock_guard<mutex_t> guard(mtx)
+# define MUTEX_GUARD(mtx) std::lock_guard<mutex_t> guard(mtx)
 #else
 # define MUTEX_LOCK(mtx) 
 # define MUTEX_UNLOCK(mtx)
@@ -98,11 +98,7 @@ void
 LogSinkImpl::start()
 {
     if (_thread) return;
-#   if LINKO_LOG_BOOST_THREAD
-    _thread = new boost::thread(&LogSinkImpl::run, this);
-#   else
     _thread = new std::thread(&LogSinkImpl::run, this);
-#   endif
 }
 
 void
@@ -132,7 +128,7 @@ LogSinkImpl::thr_write(const void* s, size_t n)
 
     Buffer buf;
     if (FREE_SIZE) {
-        boost::lock_guard<spinlock> guard(_free_lck);
+        std::lock_guard<spinlock> guard(_free_lck);
         if (!_free.empty()) { buf = _free.top(); _free.pop(); }
     }
 
@@ -144,7 +140,7 @@ LogSinkImpl::thr_write(const void* s, size_t n)
     buf.wrt = n;
     std::memcpy(buf.ptr, s, n);
 
-    boost::lock_guard<mutex_t> guard(_mutex);
+    std::lock_guard<mutex_t> guard(_mutex);
     _queue.push(buf);
     _cond.notify_one();
     return true;
@@ -318,7 +314,7 @@ LogSinkImpl::run()
     mx_print('A', "Logging thread started\n");
 
     while (true) {
-        boost::unique_lock<mutex_t> lock(_mutex);
+        std::unique_lock<mutex_t> lock(_mutex);
         while (!_terminate && _queue.empty()) _cond.wait(_mutex);
         if (_terminate && _queue.empty()) break;
         
@@ -330,7 +326,7 @@ LogSinkImpl::run()
         else {
             mx_write(buf.ptr, buf.wrt);
             if (FREE_SIZE) {
-                boost::lock_guard<spinlock> guard(_free_lck);
+                std::lock_guard<spinlock> guard(_free_lck);
                 if (_free.size() < FREE_SIZE) {
                     _free.push(buf);
                     buf.ptr = 0;

@@ -20,13 +20,13 @@
  SOFTWARE.
 ******************************************************************************/
 #include <llog/loglevel.hpp>
-#include <boost/static_assert.hpp>
 
 namespace linko {
 
 
 // If you extend LogLevel enum, remember to extend LogLevelChar as well!
-BOOST_STATIC_ASSERT(LogLevelEND == 6);
+static_assert(LogLevelEND + 1 == sizeof(LogLevelChar),
+              "Invalid LogLevelEND value");
 
 
 LogLevel

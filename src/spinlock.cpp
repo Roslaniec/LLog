@@ -20,24 +20,21 @@
  SOFTWARE.
 ******************************************************************************/
 #include <llog/spinlock.hpp>
-#include <boost/thread/exceptions.hpp>
-#include <boost/throw_exception.hpp>
+#include <llog/system_error.hpp>
 
 namespace linko {
 
 spinlock::spinlock()
 {
     int const res = pthread_spin_init(&m, PTHREAD_PROCESS_PRIVATE);
-    if(res) boost::throw_exception(
-        boost::thread_resource_error(res, "pthread_spin_init failed"));
+    if(res) throw_system_error(res, "pthread_spin_init failed");
 }
 
 
 spinlock::~spinlock()
 {
     const int res = pthread_spin_destroy(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_spin_destroy failed"));
+    if (res) throw_system_error(res, "pthread_spin_destroy failed");
 }
 
 
@@ -45,7 +42,8 @@ bool
 spinlock::try_lock()
 {
     const int res = pthread_spin_trylock(&m);
-    if (res && (res != EBUSY)) boost::throw_exception(boost::lock_error(res));
+    if (res && (res != EBUSY))
+        throw_system_error(res, "pthread_spin_trylock failed");
     return !res;
 }
 
@@ -54,8 +52,7 @@ void
 spinlock::lock()
 {
     const int res = pthread_spin_lock(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_spin_lock failed"));
+    if (res) throw_system_error(res, "pthread_spin_lock failed");
 }
 
     
@@ -63,8 +60,7 @@ void
 spinlock::unlock()
 {
     const int res = pthread_spin_unlock(&m);
-    if (res) boost::throw_exception(
-        boost::lock_error(res, "pthread_spin_unlock failed"));
+    if (res) throw_system_error(res, "pthread_spin_unlock failed");
 }
 
 

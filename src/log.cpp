@@ -27,35 +27,22 @@
 
 namespace linko { 
 
-#if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-boost::thread_specific_ptr<Log> Log::_instance;
-#else
-LINKO_THREAD_LOCAL Log *Log::_instance = 0;
-#endif 
+thread_local Log *Log::_instance = 0;
 
 
 void
 Log::createIt(LogSink &sink)
 {
-#   if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-    assert(!_instance.get());
-    _instance.reset(new Log(sink));
-#   else
     assert(!_instance);
     _instance = new Log(sink);
-#   endif 
 }
 
     
 void
 Log::destroyIt()
 {
-#   if defined LINKO_LOG_MT && !defined LINKO_THREAD_LOCAL
-    _instance.reset(0);
-#   else
     delete _instance;
     _instance = 0;
-#   endif 
 }
 
 
