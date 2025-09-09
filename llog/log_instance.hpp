@@ -16,6 +16,19 @@ public:
     ~LogInstance() { Log::destroyIt(); }
 };
 
+
+LogSink LogSink_create(const std::string &dir,
+                       const std::string &prog,
+                       unsigned mode = 0644);
+
+void start(const LogSink &sink);
+
+LogLevel get_level(const LogSink &sink);
+
+void set_level(const LogSink &sink, LogLevel level);
+
+void rotate(const LogSink &sink, std::time_t time);
+
 }
 
 #endif

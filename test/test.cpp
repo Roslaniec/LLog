@@ -20,17 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 #include <llog/thread_id.hpp>
-#include <llog/log.hpp>
 #include <llog/log_instance.hpp>
-#include <llog/log_sink_impl.hpp>
 #include <llog/timer.hpp>
 #include <iostream>
 # include <thread>
 
 using std::thread;
 using namespace linko;
-
-LogSink logSink;
 
 
 void test_log(Log &log, int count)
@@ -51,24 +47,9 @@ void test_log(Log &log, int count)
 }
 
 
-#ifndef LINKO_LOG_MT
-void test_log(linko::old::LogOld &log, int count)
-{
-    log.A() << "Test starting..." << std::endl;
-    for (int i = 0; i < count; ++i) {
-        log.I() << "Info " << i << '\n';
-        log.W() << "Warn " << i << std::endl;
-        log.E() << "Err " << i << std::endl;
-        log.D() << "Debug " << i << "\n";
-    }
-    log.A() << "...test finished" << std::endl;
-}
-#endif
-
-
 #ifdef LINKO_LOG_MT
 void
-mt_test_proc(int count) 
+mt_test_proc(int count, LogSink logSink) 
 {
     LogInstance instance(logSink);
     // Log::createIt(logSink);
@@ -79,17 +60,17 @@ mt_test_proc(int count)
 void
 test_multi_thread(int count)
 {
-    thread thr1(mt_test_proc, count);
+    thread thr1(mt_test_proc, count, Log::it()->sink());
 #   if 1
-    thread thr2(mt_test_proc, count);
-    thread thr3(mt_test_proc, count);
-    thread thr4(mt_test_proc, count);
-    thread thr5(mt_test_proc, count);
+    thread thr2(mt_test_proc, count, Log::it()->sink());
+    thread thr3(mt_test_proc, count, Log::it()->sink());
+    thread thr4(mt_test_proc, count, Log::it()->sink());
+    thread thr5(mt_test_proc, count, Log::it()->sink());
     
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     std::time_t time = std::time(0);
     time += 3600*24;
-    logSink->rotate(time);
+    rotate(Log::it()->sink(), time);
     
     thr5.join();
     thr4.join();
@@ -109,41 +90,24 @@ test_single_thread(int count)
 
     std::time_t time = std::time(0);
     time += 3600*24;
-    logSink->rotate(time);
+    rotate(logSink, time);
     test_log(*Log::it(), count);
 
     time += 3600*24;
-    logSink->rotate(time);
+    rotate(logSink, time);
     test_log(*Log::it(), count);
 
     Log::destroyIt();
 }
 
-void
-test_single_thread_old(int count) 
-{
-    using namespace linko::old;
-    LogOld::createIt("/tmp", "testold");
-
-    test_log(*LogOld::it(), count);
-    std::time_t time = std::time(0);
-    time += 3600*24;
-    LogOld::it()->rotate(time);
-    test_log(*LogOld::it(), count);
-
-    time += 3600*24;
-    LogOld::it()->rotate(time);
-    test_log(*LogOld::it(), count);
-
-    LogOld::destroyIt();
-}
 #endif
 
 
 
 int main() {
-    logSink = LogSinkImpl::create("/tmp", "testnew");
-    logSink->start();
+    LogSink logSink = LogSink_create("/tmp", "testnew");
+    LogInstance logInstance(logSink); // OR Log::createIt(sink);
+    start(logSink);
     // logSink->write_direct('E', "[TEST] ", "This is\nmultiline\nprotobuf error");
 
     Timer start;
@@ -152,7 +116,6 @@ int main() {
     test_multi_thread(10000);
 #   else
     test_single_thread(10000);
-    test_single_thread_old(10000);
 #   endif
 
     int dur = Timer::now() - start;

@@ -52,14 +52,19 @@ struct LogSinkImpl::Buffer {
 
 // MUST be called only once from main-thread
 LogSink
-LogSinkImpl::create(const std::string &dir, const std::string &prog)
+LogSinkImpl::create(const std::string &dir,
+                    const std::string &prog,
+                    unsigned mode)
 {
-    return new LogSinkImpl(dir, prog);
+    return new LogSinkImpl(dir, prog, mode);
 }
 
     
-LogSinkImpl::LogSinkImpl(const std::string &dir, const std::string &prog)
+LogSinkImpl::LogSinkImpl(const std::string &dir,
+                         const std::string &prog,
+                         unsigned mode)
     : _fileLevel(LogAlways)
+    , _mode(mode)
     , _dir(dir)
     , _prog(prog)
     , _time()
@@ -226,15 +231,31 @@ LogSinkImpl::rotate(std::time_t time)
     mx_rotate(print_msg);
 }
 
-void
-LogSinkImpl::mx_rotate(bool print_msg)
+
+std::string
+LogSinkImpl::filename()
+{
+    if (_prog.empty()) return std::string();
+    MUTEX_GUARD(_mutex);
+    return mx_filename();
+}
+
+
+std::string
+LogSinkImpl::mx_filename() const
 {
     char buffer[80];
     strftime(buffer, sizeof(buffer), "%Y%m%d-", &_tm);
-  
-    std::string logname = _dir + "/" + buffer + _prog + ".log";
+    return _dir + "/" + buffer + _prog + ".log";
+}
+
+
+void
+LogSinkImpl::mx_rotate(bool print_msg)
+{
     if (print_msg) mx_print('A', "Log file will be rotated!\n");
-    mx_open(logname.c_str());
+    const std::string name = mx_filename();
+    mx_open(name.c_str());
 }
 
 
@@ -283,9 +304,7 @@ LogSinkImpl::mx_open(const char *filename, LogLevel fLevel)
     int fd = _fd;
     _fd = -1;
     if (filename) {
-        _fd = ::open(filename,
-                     O_WRONLY | O_APPEND | O_CREAT,
-                     S_IRUSR | S_IWUSR | S_IRGRP);
+        _fd = ::open(filename, O_WRONLY | O_APPEND | O_CREAT, _mode);
         if (fd >= 0) ::close(fd);
     }
     else 
@@ -343,10 +362,45 @@ LogSinkImpl::run()
 
 
 
+//
+// Convenient functions declared in log_instance.hpp
+//
+
+LogSink
+LogSink_create(const std::string &dir, const std::string &prog, unsigned mode)
+{
+    return LogSinkImpl::create(dir, prog, mode);
+}
 
 
+void
+start(const LogSink &sink)
+{
+#   ifdef LINKO_LOG_THREAD
+    sink->start();
+#   endif
+}
 
 
+LogLevel
+get_level(const LogSink &sink)
+{
+    return sink->level();
+}
+
+
+void
+set_level(const LogSink &sink, LogLevel level)
+{
+    sink->level(level);
+}
+
+
+void
+rotate(const LogSink &sink, std::time_t time)
+{
+    sink->rotate(time);
+}
 
 
 

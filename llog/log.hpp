@@ -42,7 +42,7 @@ public:
 
     bool silent(LogLevel level) const { return _streambuf.silent(level); }
 
-    LogSink sink() const { return _sink; }
+    const LogSink &sink() const { return _sink; }
 
 protected:
     Log(const LogSink &sink, const LogLevel &sinkLevel);

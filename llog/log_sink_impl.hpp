@@ -31,7 +31,13 @@ class LogSinkImpl
     LogSinkImpl &operator=(const LogSinkImpl &) = delete; // noncopyable
     
 public:
-    static LogSink create(const std::string &dir, const std::string &prog);
+    static LogSink create(const std::string &dir,
+                          const std::string &prog,
+                          unsigned mode);
+
+    [[deprecated("Use function LogSink_create(...) instead")]]
+    static LogSink create(const std::string &dir, const std::string &prog)
+    { return create(dir, prog, 0644); }
     
     void level (LogLevel level) { _fileLevel = level; }
 
@@ -40,6 +46,8 @@ public:
     const LogLevel &level_ref() const { return _fileLevel; }
 
     bool silent(LogLevel level) const { return _fileLevel < level; }
+
+    std::string filename();
 
     void rotate(std::time_t time);
 
@@ -53,7 +61,7 @@ public:
     // bool write_direct(char lvl, const char *prefix, const char *str);
 
 private:
-    LogSinkImpl(const std::string &dir, const std::string &prog);
+    LogSinkImpl(const std::string &dir, const std::string &prog, unsigned mode);
 
     ~LogSinkImpl();
 
@@ -69,9 +77,12 @@ private:
 
     void mx_rotate(bool print_msg);
 
+    std::string mx_filename() const;
+
     LogLevel _fileLevel;
-    std::string _dir;
-    std::string _prog;
+    const unsigned _mode;
+    const std::string _dir;
+    const std::string _prog;
     std::time_t _time;
     struct tm _tm;
     int _fd;
